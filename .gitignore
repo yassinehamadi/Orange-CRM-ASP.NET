@@ -1,0 +1,23 @@
+# Visual Studio
+.vs/
+*.suo
+*.user
+
+# Compilation
+bin/
+obj/
+
+# NuGet packages
+packages/
+
+# Logs
+*.log
+
+# Base de données locale
+*.mdf
+*.ldf
+*.bak
+
+# Fichiers de configuration sensibles
+Web.Debug.config
+Web.Release.config

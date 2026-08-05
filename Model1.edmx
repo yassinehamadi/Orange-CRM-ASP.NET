@@ -1,0 +1,168 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+  <!-- EF Runtime content -->
+  <edmx:Runtime>
+    <!-- SSDL content -->
+    <edmx:StorageModels>
+    <Schema Namespace="CRMModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+        <EntityType Name="CRM_INCIDENT_202601_202606">
+          <Key>
+            <PropertyRef Name="incidentid" />
+          </Key>
+          <Property Name="incidentid" Type="nvarchar" MaxLength="50" Nullable="false" />
+          <Property Name="ticket_number" Type="nvarchar" MaxLength="50" />
+          <Property Name="creation_date" Type="nvarchar" MaxLength="50" />
+          <Property Name="modification_date" Type="nvarchar" MaxLength="50" />
+          <Property Name="user_creation" Type="nvarchar" MaxLength="50" />
+          <Property Name="user_modification" Type="nvarchar" MaxLength="50" />
+          <Property Name="statecode" Type="nvarchar" MaxLength="1800" />
+          <Property Name="statuscode" Type="nvarchar" MaxLength="1800" />
+          <Property Name="caseorigincode" Type="int" />
+          <Property Name="contratsouscrit_incidentname" Type="nvarchar" MaxLength="50" />
+          <Property Name="encoded_contratsouscrit_incidentname" Type="nvarchar" MaxLength="50" />
+          <Property Name="contratsouscrit_incident" Type="nvarchar" MaxLength="50" />
+          <Property Name="msisdn_concerne" Type="nvarchar" MaxLength="1800" />
+          <Property Name="encoded_msisdn_concerne" Type="nvarchar" MaxLength="50" />
+          <Property Name="id_type_reclamation" Type="nvarchar" MaxLength="50" />
+          <Property Name="contactid" Type="nvarchar" MaxLength="50" />
+          <Property Name="contractid" Type="nvarchar" MaxLength="1" />
+          <Property Name="accountid" Type="nvarchar" MaxLength="50" />
+          <Property Name="otn_indicateur_satisfaction" Type="nvarchar" MaxLength="1" />
+          <Property Name="queueid" Type="nvarchar" MaxLength="50" />
+          <Property Name="comptefacturation_contrat" Type="nvarchar" MaxLength="50" />
+          <Property Name="date_cloture" Type="nvarchar" MaxLength="50" />
+          <Property Name="date_rejet" Type="nvarchar" MaxLength="50" />
+          <Property Name="msisdn" Type="int" />
+          <Property Name="encoded_msisdn" Type="nvarchar" MaxLength="50" />
+          <Property Name="delai_traitement" Type="int" />
+          <Property Name="tmcode" Type="int" />
+          <Property Name="prgcode" Type="tinyint" />
+          <Property Name="entry_date_crm" Type="date" />
+          <Property Name="subject_name" Type="nvarchar" MaxLength="1800" />
+          <Property Name="parent_subject_name" Type="nvarchar" MaxLength="1800" />
+          <Property Name="statecode_value" Type="nvarchar" MaxLength="1800" />
+          <Property Name="statuscode_value" Type="nvarchar" MaxLength="1800" />
+          <Property Name="rnk" Type="nvarchar" MaxLength="1800" />
+          <Property Name="description" Type="nvarchar(max)" />
+        </EntityType>
+        <EntityContainer Name="CRMModelStoreContainer">
+          <EntitySet Name="CRM_INCIDENT_202601_202606" EntityType="Self.CRM_INCIDENT_202601_202606" Schema="dbo" store:Type="Tables" />
+        </EntityContainer>
+      </Schema></edmx:StorageModels>
+    <!-- CSDL content -->
+    <edmx:ConceptualModels>
+      <Schema Namespace="CRMModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
+        <EntityContainer Name="CRMEntities" annotation:LazyLoadingEnabled="true" >
+          <EntitySet Name="CRM_INCIDENT_202601_202606" EntityType="CRMModel.CRM_INCIDENT_202601_202606" />
+        </EntityContainer>
+        <EntityType Name="CRM_INCIDENT_202601_202606">
+          <Key>
+            <PropertyRef Name="incidentid" />
+          </Key>
+          <Property Name="incidentid" Type="String" Nullable="false" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="ticket_number" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="creation_date" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="modification_date" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="user_creation" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="user_modification" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="statecode" Type="String" MaxLength="1800" FixedLength="false" Unicode="true" />
+          <Property Name="statuscode" Type="String" MaxLength="1800" FixedLength="false" Unicode="true" />
+          <Property Name="caseorigincode" Type="Int32" />
+          <Property Name="contratsouscrit_incidentname" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="encoded_contratsouscrit_incidentname" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="contratsouscrit_incident" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="msisdn_concerne" Type="String" MaxLength="1800" FixedLength="false" Unicode="true" />
+          <Property Name="encoded_msisdn_concerne" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="id_type_reclamation" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="contactid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="contractid" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="accountid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="otn_indicateur_satisfaction" Type="String" MaxLength="1" FixedLength="false" Unicode="true" />
+          <Property Name="queueid" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="comptefacturation_contrat" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="date_cloture" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="date_rejet" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="msisdn" Type="Int32" />
+          <Property Name="encoded_msisdn" Type="String" MaxLength="50" FixedLength="false" Unicode="true" />
+          <Property Name="delai_traitement" Type="Int32" />
+          <Property Name="tmcode" Type="Int32" />
+          <Property Name="prgcode" Type="Byte" />
+          <Property Name="entry_date_crm" Type="DateTime" Precision="0" />
+          <Property Name="subject_name" Type="String" MaxLength="1800" FixedLength="false" Unicode="true" />
+          <Property Name="parent_subject_name" Type="String" MaxLength="1800" FixedLength="false" Unicode="true" />
+          <Property Name="statecode_value" Type="String" MaxLength="1800" FixedLength="false" Unicode="true" />
+          <Property Name="statuscode_value" Type="String" MaxLength="1800" FixedLength="false" Unicode="true" />
+          <Property Name="rnk" Type="String" MaxLength="1800" FixedLength="false" Unicode="true" />
+          <Property Name="description" Type="String" MaxLength="Max" FixedLength="false" Unicode="true" />
+        </EntityType>
+      </Schema>
+    </edmx:ConceptualModels>
+    <!-- C-S mapping content -->
+    <edmx:Mappings>
+      <Mapping Space="C-S" xmlns="http://schemas.microsoft.com/ado/2009/11/mapping/cs">
+        <EntityContainerMapping StorageEntityContainer="CRMModelStoreContainer" CdmEntityContainer="CRMEntities" >
+          <EntitySetMapping Name="CRM_INCIDENT_202601_202606">
+            <EntityTypeMapping TypeName="CRMModel.CRM_INCIDENT_202601_202606">
+              <MappingFragment StoreEntitySet="CRM_INCIDENT_202601_202606">
+                <ScalarProperty Name="description" ColumnName="description" />
+                <ScalarProperty Name="rnk" ColumnName="rnk" />
+                <ScalarProperty Name="statuscode_value" ColumnName="statuscode_value" />
+                <ScalarProperty Name="statecode_value" ColumnName="statecode_value" />
+                <ScalarProperty Name="parent_subject_name" ColumnName="parent_subject_name" />
+                <ScalarProperty Name="subject_name" ColumnName="subject_name" />
+                <ScalarProperty Name="entry_date_crm" ColumnName="entry_date_crm" />
+                <ScalarProperty Name="prgcode" ColumnName="prgcode" />
+                <ScalarProperty Name="tmcode" ColumnName="tmcode" />
+                <ScalarProperty Name="delai_traitement" ColumnName="delai_traitement" />
+                <ScalarProperty Name="encoded_msisdn" ColumnName="encoded_msisdn" />
+                <ScalarProperty Name="msisdn" ColumnName="msisdn" />
+                <ScalarProperty Name="date_rejet" ColumnName="date_rejet" />
+                <ScalarProperty Name="date_cloture" ColumnName="date_cloture" />
+                <ScalarProperty Name="comptefacturation_contrat" ColumnName="comptefacturation_contrat" />
+                <ScalarProperty Name="queueid" ColumnName="queueid" />
+                <ScalarProperty Name="otn_indicateur_satisfaction" ColumnName="otn_indicateur_satisfaction" />
+                <ScalarProperty Name="accountid" ColumnName="accountid" />
+                <ScalarProperty Name="contractid" ColumnName="contractid" />
+                <ScalarProperty Name="contactid" ColumnName="contactid" />
+                <ScalarProperty Name="id_type_reclamation" ColumnName="id_type_reclamation" />
+                <ScalarProperty Name="encoded_msisdn_concerne" ColumnName="encoded_msisdn_concerne" />
+                <ScalarProperty Name="msisdn_concerne" ColumnName="msisdn_concerne" />
+                <ScalarProperty Name="contratsouscrit_incident" ColumnName="contratsouscrit_incident" />
+                <ScalarProperty Name="encoded_contratsouscrit_incidentname" ColumnName="encoded_contratsouscrit_incidentname" />
+                <ScalarProperty Name="contratsouscrit_incidentname" ColumnName="contratsouscrit_incidentname" />
+                <ScalarProperty Name="caseorigincode" ColumnName="caseorigincode" />
+                <ScalarProperty Name="statuscode" ColumnName="statuscode" />
+                <ScalarProperty Name="statecode" ColumnName="statecode" />
+                <ScalarProperty Name="user_modification" ColumnName="user_modification" />
+                <ScalarProperty Name="user_creation" ColumnName="user_creation" />
+                <ScalarProperty Name="modification_date" ColumnName="modification_date" />
+                <ScalarProperty Name="creation_date" ColumnName="creation_date" />
+                <ScalarProperty Name="ticket_number" ColumnName="ticket_number" />
+                <ScalarProperty Name="incidentid" ColumnName="incidentid" />
+              </MappingFragment>
+            </EntityTypeMapping>
+          </EntitySetMapping>
+        </EntityContainerMapping>
+      </Mapping>
+    </edmx:Mappings>
+  </edmx:Runtime>
+  <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <Connection>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="MetadataArtifactProcessing" Value="EmbedInOutputAssembly" />
+      </DesignerInfoPropertySet>
+    </Connection>
+    <Options>
+      <DesignerInfoPropertySet>
+        <DesignerProperty Name="ValidateOnBuild" Value="true" />
+        <DesignerProperty Name="EnablePluralization" Value="false" />
+        <DesignerProperty Name="IncludeForeignKeysInModel" Value="true" />
+        <DesignerProperty Name="UseLegacyProvider" Value="false" />
+        <DesignerProperty Name="CodeGenerationStrategy" Value="Aucun" />
+      </DesignerInfoPropertySet>
+    </Options>
+    <!-- Diagram content (shape and connector positions) -->
+    <Diagrams></Diagrams>
+  </Designer>
+</edmx:Edmx>

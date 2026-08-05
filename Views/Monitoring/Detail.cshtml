@@ -1,0 +1,97 @@
+﻿@model List<IHM_Monitoring.Models.DetailAnomalie>
+@using IHM_Monitoring.Models
+
+@{
+    ViewBag.Title = "Détail anomalie";
+    var stat = ViewBag.StatJour as MonitoringQuotidien;
+    DateTime dateCourante = ViewBag.Date;
+}
+
+<h2>@ViewBag.SubjectName</h2>
+<h5 class="text-muted">@dateCourante.ToString("dd/MM/yyyy")</h5>
+
+@if (stat != null)
+{
+    <div class="row my-4">
+        <div class="col-md-4">
+            <div class="card text-white bg-danger">
+                <div class="card-body">
+                    <h6 class="card-title">Réclamations ce jour</h6>
+                    <p style="font-size:2rem; margin:0;">@stat.NombreReclamations</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Moyenne habituelle</h6>
+                    <p style="font-size:2rem; margin:0;">@(stat.MoyenneMobile?.ToString("F0") ?? "-")</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h6 class="card-title">Z-score</h6>
+                    <p style="font-size:2rem; margin:0;">@(stat.ZScore?.ToString("F2") ?? "-")</p>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@if (!ViewBag.DetailDisponible)
+{
+    <div class="alert alert-warning">
+        Le détail par produit / technologie / cause n'est pas encore disponible pour ce sujet.
+        Seul <strong>RET632-Echec de connexion</strong> dispose d'un modèle de classification pour l'instant.
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header"><strong>Produit</strong></div>
+                <div class="card-body"><canvas id="chart_produit" height="220"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header"><strong>Technologie</strong></div>
+                <div class="card-body"><canvas id="chart_technologie" height="220"></canvas></div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header"><strong>Cause</strong></div>
+                <div class="card-body"><canvas id="chart_cause" height="220"></canvas></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+    <script>
+        function dessinerGraphique(idCanvas, dataDict) {
+            var labels = Object.keys(dataDict);
+            var valeurs = Object.values(dataDict);
+            new Chart(document.getElementById(idCanvas), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: valeurs,
+                        backgroundColor: ['#0d6efd', '#dc3545', '#198754', '#ffc107', '#6c757d', '#0dcaf0']
+                    }]
+                },
+                options: { plugins: { legend: { position: 'bottom' } } }
+            });
+        }
+
+        dessinerGraphique('chart_produit', @Html.Raw(ViewBag.JsonProduit));
+        dessinerGraphique('chart_technologie', @Html.Raw(ViewBag.JsonTechnologie));
+        dessinerGraphique('chart_cause', @Html.Raw(ViewBag.JsonCause));
+    </script>
+}
+
+<a href="@Url.Action("Index", new { date = dateCourante.ToString("yyyy-MM-dd") })" class="btn btn-secondary mt-3">← Retour au tableau</a>

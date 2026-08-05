@@ -1,0 +1,57 @@
+﻿@model List<IHM_Monitoring.Models.MonitoringQuotidien>
+
+@{
+    ViewBag.Title = "Monitoring CRM";
+    DateTime dateAffichee = ViewBag.DateAffichee;
+    DateTime dateMin = ViewBag.DateMin;
+    DateTime dateMax = ViewBag.DateMax;
+}
+
+<h2>Monitoring CRM</h2>
+
+<form method="get" action="@Url.Action("Index")" class="form-inline mb-3">
+    <label class="mr-2">Date :</label>
+    <input type="date" name="date" value="@dateAffichee.ToString("yyyy-MM-dd")"
+           min="@dateMin.ToString("yyyy-MM-dd")" max="@dateMax.ToString("yyyy-MM-dd")"
+           class="form-control mr-2" style="margin-right:8px;" />
+    <button type="submit" class="btn btn-primary" style="margin-right:8px;">Afficher</button>
+
+    <a href="@Url.Action("Index", new { date = dateAffichee.AddDays(-1).ToString("yyyy-MM-dd") })"
+       class="btn btn-outline-secondary" style="margin-right:4px;">← Jour précédent</a>
+    <a href="@Url.Action("Index", new { date = dateAffichee.AddDays(1).ToString("yyyy-MM-dd") })"
+       class="btn btn-outline-secondary">Jour suivant →</a>
+</form>
+
+<h4>@dateAffichee.ToString("dd/MM/yyyy")</h4>
+
+<table class="table table-bordered table-hover">
+    <thead>
+        <tr>
+            <th>Sujet</th>
+            <th>Réclamations</th>
+            <th>Moyenne habituelle</th>
+            <th>Statut</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var ligne in Model)
+        {
+            <tr class="@(ligne.EstAnomalie ? "table-danger" : "")">
+                <td>@ligne.SubjectName</td>
+                <td>@ligne.NombreReclamations</td>
+                <td>@(ligne.MoyenneMobile.HasValue ? ligne.MoyenneMobile.Value.ToString("F0") : "-")</td>
+                <td>
+                    @if (ligne.EstAnomalie)
+                    {
+                        <a href="@Url.Action("Detail", new { subjectName = ligne.SubjectName, date = ligne.Date.ToString("yyyy-MM-dd") })"
+                           class="btn btn-danger btn-sm">⚠ Anomalie — Voir détail</a>
+                    }
+                    else
+                    {
+                        <span class="text-success">✓ Normal</span>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
