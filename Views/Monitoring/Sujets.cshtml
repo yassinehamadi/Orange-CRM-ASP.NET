@@ -1,0 +1,550 @@
+@model IHM_Monitoring.Models.SujetsViewModel
+
+@{
+    ViewBag.Title = "Analyse des Sujets";
+    bool isRET632 = Model.SubjectSelected.StartsWith("RET632", StringComparison.OrdinalIgnoreCase);
+    bool isREC541 = Model.SubjectSelected.StartsWith("REC541", StringComparison.OrdinalIgnoreCase);
+    bool isREC531 = Model.SubjectSelected.StartsWith("REC531", StringComparison.OrdinalIgnoreCase);
+    bool isINF261 = Model.SubjectSelected.StartsWith("INF261", StringComparison.OrdinalIgnoreCase);
+}
+
+<!-- En-tête de la page -->
+<div class="om-page-header">
+    <div class="om-page-title-group">
+        <div class="om-page-tag">Analyse Approfondie CRM</div>
+        <h1 class="om-page-title">Analyse des Sujets Prioritaires</h1>
+        <p class="om-page-subtitle">Diagnostic ciblé, métriques métier et répartition par catégorie d'incident</p>
+    </div>
+</div>
+
+<!-- BARRE D'OUTILS ET SÉLECTEUR DE DATE (PLACES EN HAUT DE PAGE) -->
+<div class="om-toolbar mb-4">
+    <form method="get" action="@Url.Action("Sujets")" class="om-toolbar-group">
+        <input type="hidden" name="subjectName" value="@Model.SubjectSelected" />
+        <label for="date" class="om-date-label">Sujet actif : <strong>@Model.SubjectSelected</strong> | Date d'observation :</label>
+        <input type="date" id="date" name="date" value="@Model.DateSelected.ToString("yyyy-MM-dd")"
+               min="@Model.DateMin.ToString("yyyy-MM-dd")" max="@Model.DateMax.ToString("yyyy-MM-dd")"
+               class="om-date-input" />
+        <button type="submit" class="btn-orange">Filtrer par date</button>
+    </form>
+
+    <div class="om-toolbar-group">
+        <a href="@Url.Action("Quotidien", new { date = Model.DateSelected.ToString("yyyy-MM-dd") })"
+           class="btn-om-outline">&larr; Consulter dans le suivi quotidien</a>
+    </div>
+</div>
+
+<!-- SÉLECTION DES 4 SUJETS CLÉS -->
+<div class="row g-3 mb-4">
+    @foreach (var suj in Model.SujetsClefs)
+    {
+        bool isSelected = Model.SubjectSelected.StartsWith(suj.Code, StringComparison.OrdinalIgnoreCase);
+        <div class="col-12 col-sm-6 col-lg-3">
+            <a href="@Url.Action("Sujets", new { subjectName = suj.Code, date = Model.DateSelected.ToString("yyyy-MM-dd") })"
+               class="text-decoration-none">
+                <div class="om-kpi-card @(isSelected ? "om-kpi-card-active" : "")"
+                     style="@(isSelected ? "border: 2px solid var(--orange-main); background-color: var(--orange-light);" : "")">
+                    <div class="om-kpi-header">
+                        <span class="om-kpi-label">@suj.Code</span>
+                        <div class="om-kpi-icon @(isSelected ? "om-kpi-icon-orange" : "om-kpi-icon-info")">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <div class="om-kpi-value" style="font-size: 1.2rem;">@suj.Libelle</div>
+                    <div class="om-kpi-sub">@suj.Description</div>
+                </div>
+            </a>
+        </div>
+    }
+</div>
+
+<!-- HEADER KPIS DU SUJET SUR 30 JOURS -->
+<div class="row g-3 mb-4">
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="om-kpi-card om-kpi-card-info">
+            <div class="om-kpi-label">Réclamations (30j)</div>
+            <div class="om-kpi-value">@Model.TotalReclamations30j.ToString("N0")</div>
+            <div class="om-kpi-sub">Cumul sur les 30 derniers jours</div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="om-kpi-card om-kpi-card-danger">
+            <div class="om-kpi-label">Jours d'Anomalie (30j)</div>
+            <div class="om-kpi-value" style="color: var(--alert-red);">@Model.NbJoursAnomalie30j</div>
+            <div class="om-kpi-sub">Alertes statistiques détectées</div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="om-kpi-card om-kpi-card-warning">
+            <div class="om-kpi-label">Taux d'Anomalie (30j)</div>
+            <div class="om-kpi-value">@Model.TauxAnomalie30j.ToString("F1")%</div>
+            <div class="om-kpi-sub">Ratio de jours en anomalie</div>
+        </div>
+    </div>
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="om-kpi-card">
+            <div class="om-kpi-label">Z-Score ce jour</div>
+            <div class="om-kpi-value" style="color: @(Model.StatJour != null && Model.StatJour.EstAnomalie ? "var(--alert-red)" : "var(--success-green)");">
+                @(Model.StatJour?.ZScore.HasValue == true ? Model.StatJour.ZScore.Value.ToString("F2") : "-")
+            </div>
+            <div class="om-kpi-sub">Date : @Model.DateSelected.ToString("dd/MM/yyyy")</div>
+        </div>
+    </div>
+</div>
+
+<!-- CARTE D'INSIGHT INTELLIGENT AUTOMATIQUE -->
+@if (!string.IsNullOrEmpty(Model.MainInsight))
+{
+    <div class="om-info-banner mb-4">
+        <div class="om-info-banner-icon">💡</div>
+        <div style="flex-grow: 1;">
+            <div style="font-weight: 800; font-size: 1rem; color: var(--text-primary); margin-bottom: 2px;">
+                Diagnostic Intelligents &mdash; @Model.SubjectSelected
+            </div>
+            <div style="font-size: 0.95rem; color: var(--text-primary); font-weight: 600;">
+                @Model.MainInsight
+            </div>
+            <div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 2px;">
+                @Model.SubInsight
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.TopFactorLabel))
+        {
+            <div class="d-none d-md-block text-end ps-3 border-start" style="border-color: var(--border-color) !important;">
+                <div style="font-size: 0.725rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">@Model.TopFactorLabel</div>
+                <div style="font-size: 1.1rem; font-weight: 800; color: var(--orange-main);">@Model.TopFactorValue</div>
+            </div>
+        }
+    </div>
+}
+
+<!-- SECTIONS SPECIFIQUES PAR SUBJECT NAME -->
+@if (!Model.DetailDisponible)
+{
+    <div class="om-card p-4 text-center text-muted mb-4">
+        Aucune donnée de classification disponible pour ce sujet à la date sélectionnée.
+    </div>
+}
+else
+{
+    if (isRET632)
+    {
+        <!-- ================================================================= -->
+        <!-- RET632 - ÉCHEC DE CONNEXION : PRODUIT x TECHNOLOGIE x CAUSE -->
+        <!-- ================================================================= -->
+        <h2 class="om-section-title">Échec de Connexion &mdash; Diagnostic Produits & Technologies</h2>
+
+        <div class="row g-4 mb-4">
+            <!-- 1. Horizontal Bar Chart - PRODUIT -->
+            <div class="col-12 col-lg-6">
+                <div class="om-card">
+                    <div class="om-card-header">
+                        <div class="om-card-title">Répartition par Produit Concerné</div>
+                    </div>
+                    <div class="om-card-body">
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="chartRetProduit"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Doughnut / Pie Chart - TECHNOLOGIE -->
+            <div class="col-12 col-lg-6">
+                <div class="om-card">
+                    <div class="om-card-header">
+                        <div class="om-card-title">Répartition par Technologie Réseau</div>
+                    </div>
+                    <div class="om-card-body">
+                        <div style="height: 260px; position: relative;">
+                            <canvas id="chartRetTech"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. Ranking Table - CAUSES DE CONNEXION -->
+        var causeGroup = Model.CategoriesData.FirstOrDefault(c => c.Categorie.Equals("cause", StringComparison.OrdinalIgnoreCase));
+        if (causeGroup != null)
+        {
+            <div class="om-card mb-4">
+                <div class="om-card-header">
+                    <div class="om-card-title">Causes d'Échec de Connexion (Classement)</div>
+                </div>
+                <div class="om-card-body p-0">
+                    <table class="om-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Cause Identifiée</th>
+                                <th class="text-end">Volume</th>
+                                <th class="text-end">Part Relative</th>
+                                <th>Proportion Visuelle</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @{ int rankCause = 1; }
+                            @foreach (var item in causeGroup.Items)
+                            {
+                                string widthStyle = item.Pourcentage.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                                <tr>
+                                    <td style="font-weight: 700; width: 40px; color: var(--gray-text);">@rankCause.</td>
+                                    <td style="font-weight: 700;">@item.Valeur</td>
+                                    <td class="text-end" style="font-weight: 800;">@item.Total.ToString("N0")</td>
+                                    <td class="text-end" style="font-weight: 700; color: var(--orange-dark);">@item.Pourcentage.ToString("F1")%</td>
+                                    <td style="width: 35%;">
+                                        <div class="om-bar-track">
+                                            <div class="om-bar-fill" style="width: @(widthStyle)%;"></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                rankCause++;
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        }
+    }
+    else if (isREC541)
+    {
+        <!-- ================================================================= -->
+        <!-- REC541 - PERTE DE SOLDE : CAUSES DE PERTE (SERVICE PLUS, SOS CREDIT...) -->
+        <!-- ================================================================= -->
+        <h2 class="om-section-title">Perte de Solde &mdash; Analyse des Motifs Prise en Charge CRM</h2>
+
+        var causePerteGroup = Model.CategoriesData.FirstOrDefault(c => c.Categorie.Equals("cause_perte", StringComparison.OrdinalIgnoreCase));
+
+        <div class="row g-4 mb-4">
+            <!-- 1. Horizontal Bar Chart Gradient - CAUSES DE PERTE -->
+            <div class="col-12 col-lg-7">
+                <div class="om-card">
+                    <div class="om-card-header">
+                        <div class="om-card-title">Volume des Réclamations par Cause de Perte</div>
+                    </div>
+                    <div class="om-card-body">
+                        <div style="height: 320px; position: relative;">
+                            <canvas id="chartRecPerte"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Ranking List Card avec Pourcentages & Barres Proportionnelles -->
+            <div class="col-12 col-lg-5">
+                <div class="om-card">
+                    <div class="om-card-header">
+                        <div class="om-card-title">Top des Motifs de Perte de Solde</div>
+                    </div>
+                    <div class="om-card-body">
+                        @if (causePerteGroup != null)
+                        {
+                            foreach (var item in causePerteGroup.Items.Take(6))
+                            {
+                                string widthStyle = item.Pourcentage.ToString("F1", System.Globalization.CultureInfo.InvariantCulture);
+                                <div class="om-bar-wrapper">
+                                    <div class="om-bar-info">
+                                        <span style="font-weight: 700;">@item.Valeur</span>
+                                        <span style="font-weight: 800; color: var(--orange-dark);">@item.Total.ToString("N0") (@item.Pourcentage.ToString("F1")%)</span>
+                                    </div>
+                                    <div class="om-bar-track">
+                                        <div class="om-bar-fill" style="width: @(widthStyle)%;"></div>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (isREC531)
+    {
+        <!-- ================================================================= -->
+        <!-- REC531 - ÉCHEC DE RECHARGE : CAUSE PROBABLE x CANAL -->
+        <!-- ================================================================= -->
+        <h2 class="om-section-title">Échec de Recharge &mdash; Analyse par Cause & Canal de Recharge</h2>
+
+        <div class="row g-4 mb-4">
+            <!-- 1. Bar Chart - CAUSE PROBABLE -->
+            <div class="col-12 col-lg-6">
+                <div class="om-card">
+                    <div class="om-card-header">
+                        <div class="om-card-title">Causes Probables d'Échec de Recharge</div>
+                    </div>
+                    <div class="om-card-body">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="chartRecCause"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Doughnut / Pie Chart - CANAL -->
+            <div class="col-12 col-lg-6">
+                <div class="om-card">
+                    <div class="om-card-header">
+                        <div class="om-card-title">Répartition par Canal de Recharge</div>
+                    </div>
+                    <div class="om-card-body">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="chartRecCanal"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (isINF261)
+    {
+        <!-- ================================================================= -->
+        <!-- INF261 - OFFRE MOBILE : TYPE D'OFFRE (PRÉPAYÉE, POSTPAYÉE...) -->
+        <!-- ================================================================= -->
+        <h2 class="om-section-title">Offre Mobile &mdash; Demandes d'Information par Type d'Offre</h2>
+
+        var typeOffreGroup = Model.CategoriesData.FirstOrDefault(c => c.Categorie.Equals("type_offre", StringComparison.OrdinalIgnoreCase));
+
+        <div class="row g-4 mb-4">
+            <!-- 1. Bar Chart - TYPE D'OFFRE -->
+            <div class="col-12 col-lg-7">
+                <div class="om-card">
+                    <div class="om-card-header">
+                        <div class="om-card-title">Réclamations & Informations par Formule</div>
+                    </div>
+                    <div class="om-card-body">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="chartInfOffre"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. Doughnut Breakdown -->
+            <div class="col-12 col-lg-5">
+                <div class="om-card">
+                    <div class="om-card-header">
+                        <div class="om-card-title">Part Relative des Offres</div>
+                    </div>
+                    <div class="om-card-body">
+                        <div style="height: 280px; position: relative;">
+                            <canvas id="chartInfDoughnut"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+<!-- CHART.JS SPECIFIQUES PAR SUBJECT NAME -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+    (function () {
+        var categoriesData = @Html.Raw(Model.CategoriesJson);
+
+        if (!categoriesData || categoriesData.length === 0) return;
+
+        function getCategoryData(catCode) {
+            for (var i = 0; i < categoriesData.length; i++) {
+                if (categoriesData[i].Categorie.toLowerCase() === catCode.toLowerCase()) {
+                    return categoriesData[i].Repartition;
+                }
+            }
+            return null;
+        }
+
+        // Palette Orange Premium
+        var orangeColors = ['#FF7900', '#2563EB', '#DC2626', '#D97706', '#16A34A', '#7C3AED', '#0891B2', '#475569'];
+
+        @if (isRET632)
+        {
+            <text>
+            // RET632 - Produit (Horizontal Bar)
+            var dataProd = getCategoryData('produit');
+            if (dataProd && document.getElementById('chartRetProduit')) {
+                new Chart(document.getElementById('chartRetProduit'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(dataProd),
+                        datasets: [{
+                            label: 'Volume',
+                            data: Object.values(dataProd),
+                            backgroundColor: '#FF7900',
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { grid: { color: '#F1F5F9' } }, y: { grid: { display: false } } }
+                    }
+                });
+            }
+
+            // RET632 - Technologie (Doughnut / Pie Chart)
+            var dataTech = getCategoryData('technologie');
+            if (dataTech && document.getElementById('chartRetTech')) {
+                new Chart(document.getElementById('chartRetTech'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(dataTech),
+                        datasets: [{
+                            data: Object.values(dataTech),
+                            backgroundColor: orangeColors,
+                            borderWidth: 2,
+                            borderColor: '#FFFFFF'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { font: { family: "'Segoe UI', sans-serif", size: 12, weight: '600' } }
+                            }
+                        }
+                    }
+                });
+            }
+            </text>
+        }
+        else if (isREC541)
+        {
+            <text>
+            // REC541 - Causes de perte (Horizontal Bar Gradient)
+            var dataPerte = getCategoryData('cause_perte');
+            if (dataPerte && document.getElementById('chartRecPerte')) {
+                new Chart(document.getElementById('chartRecPerte'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(dataPerte),
+                        datasets: [{
+                            label: 'Solde Perdu',
+                            data: Object.values(dataPerte),
+                            backgroundColor: orangeColors,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { grid: { color: '#F1F5F9' } }, y: { grid: { display: false } } }
+                    }
+                });
+            }
+            </text>
+        }
+        else if (isREC531)
+        {
+            <text>
+            // REC531 - Cause Probable (Bar avec Palette Multi-Couleurs)
+            var dataCause = getCategoryData('cause_probable');
+            if (dataCause && document.getElementById('chartRecCause')) {
+                new Chart(document.getElementById('chartRecCause'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(dataCause),
+                        datasets: [{
+                            label: 'Nombre d\'échecs',
+                            data: Object.values(dataCause),
+                            backgroundColor: orangeColors,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { grid: { display: false }, ticks: { color: '#94A3B8' } }, y: { grid: { color: '#334155' }, ticks: { color: '#94A3B8' } } }
+                    }
+                });
+            }
+
+            // REC531 - Canal (Doughnut / Pie Chart)
+            var dataCanal = getCategoryData('canal');
+            if (dataCanal && document.getElementById('chartRecCanal')) {
+                new Chart(document.getElementById('chartRecCanal'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(dataCanal),
+                        datasets: [{
+                            data: Object.values(dataCanal),
+                            backgroundColor: orangeColors,
+                            borderWidth: 2,
+                            borderColor: '#FFFFFF'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: { font: { family: "'Segoe UI', sans-serif", size: 12, weight: '600' } }
+                            }
+                        }
+                    }
+                });
+            }
+            </text>
+        }
+        else if (isINF261)
+        {
+            <text>
+            // INF261 - Type d'offre (Bar & Doughnut)
+            var dataOffre = getCategoryData('type_offre');
+            if (dataOffre && document.getElementById('chartInfOffre')) {
+                new Chart(document.getElementById('chartInfOffre'), {
+                    type: 'bar',
+                    data: {
+                        labels: Object.keys(dataOffre),
+                        datasets: [{
+                            label: 'Volume d\'informations',
+                            data: Object.values(dataOffre),
+                            backgroundColor: orangeColors,
+                            borderRadius: 6
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { legend: { display: false } },
+                        scales: { x: { grid: { display: false } }, y: { grid: { color: '#F1F5F9' } } }
+                    }
+                });
+            }
+
+            if (dataOffre && document.getElementById('chartInfDoughnut')) {
+                new Chart(document.getElementById('chartInfDoughnut'), {
+                    type: 'doughnut',
+                    data: {
+                        labels: Object.keys(dataOffre),
+                        datasets: [{
+                            data: Object.values(dataOffre),
+                            backgroundColor: orangeColors,
+                            borderWidth: 2,
+                            borderColor: '#FFFFFF'
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '60%',
+                        plugins: { legend: { position: 'bottom' } }
+                    }
+                });
+            }
+            </text>
+        }
+    })();
+</script>

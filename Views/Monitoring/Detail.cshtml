@@ -1,4 +1,4 @@
-﻿@model List<IHM_Monitoring.Models.DetailAnomalie>
+@model List<IHM_Monitoring.Models.DetailAnomalie>
 @using IHM_Monitoring.Models
 
 @{
@@ -7,34 +7,31 @@
     DateTime dateCourante = ViewBag.Date;
 }
 
-<h2>@ViewBag.SubjectName</h2>
-<h5 class="text-muted">@dateCourante.ToString("dd/MM/yyyy")</h5>
+<div class="om-page-header">
+    <h1 class="om-page-title">@ViewBag.SubjectName</h1>
+    <p class="om-page-subtitle">
+        Analyse d&eacute;taill&eacute;e de l'anomalie du @dateCourante.ToString("dd/MM/yyyy")
+    </p></div>
 
 @if (stat != null)
 {
-    <div class="row my-4">
-        <div class="col-md-4">
-            <div class="card text-white bg-danger">
-                <div class="card-body">
-                    <h6 class="card-title">Réclamations ce jour</h6>
-                    <p style="font-size:2rem; margin:0;">@stat.NombreReclamations</p>
-                </div>
+    <div class="row g-4 mb-4">
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="om-kpi-card">
+                <div class="om-kpi-label">Réclamations ce jour</div>
+                <div class="om-kpi-value">@stat.NombreReclamations</div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Moyenne habituelle</h6>
-                    <p style="font-size:2rem; margin:0;">@(stat.MoyenneMobile?.ToString("F0") ?? "-")</p>
-                </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="om-kpi-card">
+                <div class="om-kpi-label">Moyenne habituelle</div>
+                <div class="om-kpi-value">@(stat.MoyenneMobile?.ToString("F0") ?? "-")</div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="card">
-                <div class="card-body">
-                    <h6 class="card-title">Z-score</h6>
-                    <p style="font-size:2rem; margin:0;">@(stat.ZScore?.ToString("F2") ?? "-")</p>
-                </div>
+        <div class="col-md-4 mb-3 mb-md-0">
+            <div class="om-kpi-card">
+                <div class="om-kpi-label">Z-Score</div>
+                <div class="om-kpi-value">@(stat.ZScore?.ToString("F2") ?? "-")</div>
             </div>
         </div>
     </div>
@@ -42,56 +39,136 @@
 
 @if (!ViewBag.DetailDisponible)
 {
-    <div class="alert alert-warning">
-        Le détail par produit / technologie / cause n'est pas encore disponible pour ce sujet.
-        Seul <strong>RET632-Echec de connexion</strong> dispose d'un modèle de classification pour l'instant.
+    <div class="om-info-banner">
+        <div class="om-info-banner-icon">&#8505;</div>
+        <div>
+            <strong>Information :</strong> Aucun détail de répartition n'est disponible pour ce sujet à cette date.<br />
+            Le détail est affiché automatiquement dès qu'un modèle de classification existe pour le sujet concerné.
+        </div>
     </div>
 }
 else
 {
-    <div class="row">
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header"><strong>Produit</strong></div>
-                <div class="card-body"><canvas id="chart_produit" height="220"></canvas></div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header"><strong>Technologie</strong></div>
-                <div class="card-body"><canvas id="chart_technologie" height="220"></canvas></div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-header"><strong>Cause</strong></div>
-                <div class="card-body"><canvas id="chart_cause" height="220"></canvas></div>
-            </div>
-        </div>
+    <div id="charts-container" class="row g-4 mb-4">
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
     <script>
-        function dessinerGraphique(idCanvas, dataDict) {
+        // Données dynamiques — structure : [{Categorie, Repartition: {valeur: nombre, ...}}, ...]
+        var categories = @Html.Raw(ViewBag.CategoriesJson);
+
+        // Palettes de couleurs — on en définit plusieurs et on les cycle si plus de catégories que de palettes
+        var palettes = [
+            ['#FF7900', '#00A896', '#4361EE', '#F72585', '#7209B7', '#4CC9F0', '#FFB703'],
+            ['#1E88E5', '#FF5722', '#43A047', '#8E24AA', '#FDD835', '#00ACC1', '#D81B60'],
+            ['#E53935', '#FB8C00', '#3949AB', '#009688', '#D81B60', '#5E35B1', '#00E676'],
+            ['#26A69A', '#EF5350', '#AB47BC', '#FFA726', '#66BB6A', '#42A5F5', '#EC407A'],
+            ['#FF8F00', '#0288D1', '#2E7D32', '#6A1B9A', '#C62828', '#00838F', '#F57F17']
+        ];
+
+        // Dérive un libellé lisible depuis le nom brut de la catégorie
+        // Ex: "cause_probable" → "Cause Probable", "technologie" → "Technologie"
+        function labeliserCategorie(nomBrut) {
+            return nomBrut
+                .replace(/_/g, ' ')
+                .replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+        }
+
+        function dessinerGraphique(idCanvas, dataDict, paletteCouleurs) {
             var labels = Object.keys(dataDict);
             var valeurs = Object.values(dataDict);
+            var total = valeurs.reduce(function(a, b) { return a + b; }, 0);
+
             new Chart(document.getElementById(idCanvas), {
                 type: 'doughnut',
                 data: {
                     labels: labels,
                     datasets: [{
                         data: valeurs,
-                        backgroundColor: ['#0d6efd', '#dc3545', '#198754', '#ffc107', '#6c757d', '#0dcaf0']
+                        backgroundColor: paletteCouleurs,
+                        borderWidth: 3,
+                        borderColor: '#FFFFFF',
+                        hoverBorderColor: '#FFFFFF',
+                        hoverOffset: 8
                     }]
                 },
-                options: { plugins: { legend: { position: 'bottom' } } }
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '68%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                usePointStyle: true,
+                                pointStyle: 'circle',
+                                font: {
+                                    family: "'Segoe UI', sans-serif",
+                                    size: 12,
+                                    weight: '600'
+                                },
+                                color: '#1D1D1B',
+                                padding: 14
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(29, 29, 27, 0.9)',
+                            titleFont: { family: "'Segoe UI', sans-serif", size: 13, weight: 'bold' },
+                            bodyFont: { family: "'Segoe UI', sans-serif", size: 12 },
+                            padding: 10,
+                            cornerRadius: 6,
+                            callbacks: {
+                                label: function(context) {
+                                    var val = context.raw || 0;
+                                    var pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                    return ' ' + context.label + ': ' + val + ' (' + pct + '%)';
+                                }
+                            }
+                        }
+                    },
+                    animation: {
+                        animateScale: true,
+                        animateRotate: true,
+                        duration: 800
+                    }
+                }
             });
         }
 
-        dessinerGraphique('chart_produit', @Html.Raw(ViewBag.JsonProduit));
-        dessinerGraphique('chart_technologie', @Html.Raw(ViewBag.JsonTechnologie));
-        dessinerGraphique('chart_cause', @Html.Raw(ViewBag.JsonCause));
+        // Calcul de la largeur de colonne Bootstrap selon le nombre de catégories
+        // 1 → pleine largeur, 2 → moitié, 3+ → tiers
+        var nbCats = categories.length;
+        var colClass = nbCats === 1 ? 'col-12' : (nbCats === 2 ? 'col-md-6' : 'col-md-4');
+
+        var container = document.getElementById('charts-container');
+
+        categories.forEach(function(cat, index) {
+            var canvasId = 'chart_' + cat.Categorie.replace(/[^a-z0-9]/gi, '_');
+            var palette = palettes[index % palettes.length];
+            var libelle = labeliserCategorie(cat.Categorie);
+
+            // Créer la carte dynamiquement
+            var col = document.createElement('div');
+            col.className = colClass + ' mb-4 mb-md-0';
+            col.innerHTML =
+                '<div class="om-card">' +
+                    '<div class="om-card-header">R\u00e9partition par ' + libelle + '</div>' +
+                    '<div class="om-card-body">' +
+                        '<div style="height: 270px; position: relative;">' +
+                            '<canvas id="' + canvasId + '"></canvas>' +
+                        '</div>' +
+                    '</div>' +
+                '</div>';
+            container.appendChild(col);
+
+            // Dessiner le graphique
+            dessinerGraphique(canvasId, cat.Repartition, palette);
+        });
     </script>
 }
 
-<a href="@Url.Action("Index", new { date = dateCourante.ToString("yyyy-MM-dd") })" class="btn btn-secondary mt-3">← Retour au tableau</a>
+<div class="mt-4 mb-2">
+    <a href="@Url.Action("Index", new { date = dateCourante.ToString("yyyy-MM-dd") })" class="btn-om-outline">
+        &larr; Retour au tableau de bord
+    </a>
+</div>

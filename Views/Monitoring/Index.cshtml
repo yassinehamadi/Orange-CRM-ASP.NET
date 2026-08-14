@@ -1,57 +1,448 @@
-﻿@model List<IHM_Monitoring.Models.MonitoringQuotidien>
+@model IHM_Monitoring.Models.DashboardViewModel
 
 @{
-    ViewBag.Title = "Monitoring CRM";
-    DateTime dateAffichee = ViewBag.DateAffichee;
-    DateTime dateMin = ViewBag.DateMin;
-    DateTime dateMax = ViewBag.DateMax;
+    ViewBag.Title = "Dashboard Analytics CRM";
+    var keySubjects = new List<string> { "RET632", "REC541", "REC531", "INF261" };
 }
 
-<h2>Monitoring CRM</h2>
+<!-- En-tête de la page -->
+<div class="om-page-header">
+    <div class="om-page-title-group">
+        <div class="om-page-tag">System Live Analytics</div>
+        <h1 class="om-page-title">Monitoring CRM & Analytics</h1>
+        <p class="om-page-subtitle">Tableau de bord de suivi de la volumétrie et détection automatique des anomalies CRM</p>
+    </div>
+</div>
 
-<form method="get" action="@Url.Action("Index")" class="form-inline mb-3">
-    <label class="mr-2">Date :</label>
-    <input type="date" name="date" value="@dateAffichee.ToString("yyyy-MM-dd")"
-           min="@dateMin.ToString("yyyy-MM-dd")" max="@dateMax.ToString("yyyy-MM-dd")"
-           class="form-control mr-2" style="margin-right:8px;" />
-    <button type="submit" class="btn btn-primary" style="margin-right:8px;">Afficher</button>
+<!-- SECTION 1 : KPI CARDS MODERNE -->
+<div class="row g-3 mb-4">
+    <!-- Card 1 : Total Réclamations -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="om-kpi-card">
+            <div class="om-kpi-header">
+                <span class="om-kpi-label">Réclamations (30j)</span>
+                <div class="om-kpi-icon om-kpi-icon-info">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="om-kpi-value">@Model.TotalReclamations.ToString("N0")</div>
+            <div class="om-kpi-sub">Total cumulé sur les 30 derniers jours</div>
+        </div>
+    </div>
 
-    <a href="@Url.Action("Index", new { date = dateAffichee.AddDays(-1).ToString("yyyy-MM-dd") })"
-       class="btn btn-outline-secondary" style="margin-right:4px;">← Jour précédent</a>
-    <a href="@Url.Action("Index", new { date = dateAffichee.AddDays(1).ToString("yyyy-MM-dd") })"
-       class="btn btn-outline-secondary">Jour suivant →</a>
-</form>
+    <!-- Card 2 : Total Anomalies -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="om-kpi-card">
+            <div class="om-kpi-header">
+                <span class="om-kpi-label">Anomalies Détectées</span>
+                <div class="om-kpi-icon om-kpi-icon-danger">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="om-kpi-value" style="color: var(--alert-red);">@Model.TotalAnomalies.ToString("N0")</div>
+            <div class="om-kpi-sub">Nombre de jours en déviation critique</div>
+        </div>
+    </div>
 
-<h4>@dateAffichee.ToString("dd/MM/yyyy")</h4>
+    <!-- Card 3 : Sujet Critique -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="om-kpi-card">
+            <div class="om-kpi-header">
+                <span class="om-kpi-label">Sujet Critique</span>
+                <div class="om-kpi-icon om-kpi-icon-warning">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+                    </svg>
+                </div>
+            </div>
+            <div class="om-kpi-value" style="font-size: 1.15rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="@Model.SujetCritique">
+                @(string.IsNullOrEmpty(Model.SujetCritique) ? "Aucun" : Model.SujetCritique)
+            </div>
+            <div class="om-kpi-sub">Sujet accumulant le plus d'anomalies</div>
+        </div>
+    </div>
 
-<table class="table table-bordered table-hover">
-    <thead>
-        <tr>
-            <th>Sujet</th>
-            <th>Réclamations</th>
-            <th>Moyenne habituelle</th>
-            <th>Statut</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var ligne in Model)
-        {
-            <tr class="@(ligne.EstAnomalie ? "table-danger" : "")">
-                <td>@ligne.SubjectName</td>
-                <td>@ligne.NombreReclamations</td>
-                <td>@(ligne.MoyenneMobile.HasValue ? ligne.MoyenneMobile.Value.ToString("F0") : "-")</td>
-                <td>
-                    @if (ligne.EstAnomalie)
+    <!-- Card 4 : Évolution -->
+    <div class="col-12 col-sm-6 col-lg-3">
+        <div class="om-kpi-card">
+            <div class="om-kpi-header">
+                <span class="om-kpi-label">Tendance Volumétrie</span>
+                <div class="om-kpi-icon om-kpi-icon-orange">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path>
+                    </svg>
+                </div>
+            </div>
+            @if (Model.EvolutionDisponible)
+            {
+                <div class="om-kpi-value">
+                    @(Model.EvolutionPositive ? "+" : "")@Model.Evolution.ToString("F1")%
+                </div>
+                <div>
+                    <span class="om-kpi-trend @(Model.EvolutionPositive ? "om-kpi-trend-up" : "om-kpi-trend-down")">
+                        @(Model.EvolutionPositive ? "▲ Augmentation" : "▼ Diminution") (7j vs 7j préc.)
+                    </span>
+                </div>
+            }
+            else
+            {
+                <div class="om-kpi-value">-</div>
+                <div class="om-kpi-sub">Période insuffisante</div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 2 : GRAPHIQUE D'ÉVOLUTION TEMPORELLE (30 JOURS) -->
+<div class="om-card mb-4">
+    <!-- Header de la carte Analytics -->
+    <div class="om-card-header flex-column flex-md-row align-items-start align-items-md-center justify-content-between py-3 gap-3">
+        <div class="d-flex flex-column gap-1">
+            <div class="om-card-title m-0 font-weight-bold" style="font-size: 1.15rem;">
+                Évolution temporelle
+            </div>
+            <div style="font-size: 0.825rem; color: var(--text-secondary); font-weight: 500;">
+                Réclamations & Anomalies &mdash; 30 derniers jours
+            </div>
+        </div>
+
+        <!-- Metric Badges & Segmented Control Switcher -->
+        <div class="d-flex flex-wrap align-items-center gap-3">
+            <!-- Badges récapitulatifs compacts -->
+            <div class="d-none d-lg-flex align-items-center gap-3 pe-3 border-end" style="border-color: var(--dark-border) !important;">
+                <div class="text-end">
+                    <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">Réclamations</div>
+                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--orange-main);">@Model.TotalReclamations.ToString("N0")</div>
+                </div>
+                <div class="text-end">
+                    <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">Anomalies</div>
+                    <div style="font-size: 0.95rem; font-weight: 800; color: var(--alert-red);">@Model.TotalAnomalies.ToString("N0") j</div>
+                </div>
+                @if (Model.EvolutionDisponible)
+                {
+                    <div class="text-end">
+                        <div style="font-size: 0.7rem; font-weight: 800; text-transform: uppercase; color: var(--text-muted);">Tendance</div>
+                        <div style="font-size: 0.95rem; font-weight: 800; color: @(Model.EvolutionPositive ? "var(--alert-red)" : "var(--success-green)");">
+                            @(Model.EvolutionPositive ? "+" : "")@Model.Evolution.ToString("F1")%
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Segmented Control Switcher (Pill Control Moderne) -->
+            <div class="om-segmented-control" role="group" aria-label="Sélecteur de mode de graphique">
+                <button type="button" class="om-segmented-btn active" onclick="switchChartMode('line')" id="btnModeLine" title="Affichage en ligne">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"></path></svg>
+                    <span>Ligne</span>
+                </button>
+                <button type="button" class="om-segmented-btn" onclick="switchChartMode('area')" id="btnModeArea" title="Affichage en aire">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M3 15l4-4 4 4 5-5 5 5V19H3v-4z"></path></svg>
+                    <span>Aire</span>
+                </button>
+                <button type="button" class="om-segmented-btn" onclick="switchChartMode('bar')" id="btnModeBar" title="Affichage en barres">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                    <span>Barres</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Canvas du Graphique -->
+    <div class="om-card-body">
+        <div style="height: 330px; position: relative;">
+            <canvas id="timelineChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- SECTIONS 3 & 4 : TOP RÉCLAMATIONS ET TOP ANOMALIES -->
+<div class="row g-4 mb-4">
+    <!-- Section 3 : Top des réclamations -->
+    <div class="col-12 col-lg-6">
+        <div class="om-card">
+            <div class="om-card-header">
+                <div class="om-card-title">Top des Réclamations par Sujet</div>
+            </div>
+            <div class="om-card-body p-0">
+                <table class="om-table">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Subject Name</th>
+                            <th class="text-end">Réclamations</th>
+                            <th class="text-end">Part</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{ int rankRec = 1; }
+                        @foreach (var item in Model.TopSujets.Take(6))
+                        {
+                            bool isKey = keySubjects.Any(k => item.SubjectName.StartsWith(k, StringComparison.OrdinalIgnoreCase));
+                            <tr>
+                                <td style="font-weight: 700; width: 40px; color: var(--gray-text);">@rankRec.</td>
+                                <td style="font-weight: 600;">
+                                    @item.SubjectName
+                                    @if (isKey)
+                                    {
+                                        <span class="om-key-tag">Prioritaire</span>
+                                    }
+                                </td>
+                                <td class="text-end" style="font-weight: 700;">@item.TotalReclamations.ToString("N0")</td>
+                                <td class="text-end" style="color: var(--gray-text); font-weight: 600;">@item.Pourcentage.ToString("F1")%</td>
+                            </tr>
+                            rankRec++;
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section 4 : Top des anomalies (Barres visuelles) -->
+    <div class="col-12 col-lg-6">
+        <div class="om-card">
+            <div class="om-card-header">
+                <div class="om-card-title">Top des Anomalies (Nombre de jours en alerte)</div>
+            </div>
+            <div class="om-card-body">
+                @if (Model.TopAnomalies.Count == 0)
+                {
+                    <p class="text-muted">Aucune anomalie enregistrée sur la période.</p>
+                }
+                else
+                {
+                    foreach (var item in Model.TopAnomalies.Take(6))
                     {
-                        <a href="@Url.Action("Detail", new { subjectName = ligne.SubjectName, date = ligne.Date.ToString("yyyy-MM-dd") })"
-                           class="btn btn-danger btn-sm">⚠ Anomalie — Voir détail</a>
+                        bool isKey = keySubjects.Any(k => item.SubjectName.StartsWith(k, StringComparison.OrdinalIgnoreCase));
+                        <div class="om-bar-wrapper">
+                            <div class="om-bar-info">
+                                <span>
+                                    @item.SubjectName
+                                    @if (isKey)
+                                    {
+                                        <span class="om-key-tag">Prioritaire</span>
+                                    }
+                                </span>
+                                <span style="color: var(--alert-red); font-weight: 800;">@item.NbJoursAnomalie jour(s)</span>
+                            </div>
+                            <div class="om-bar-track">
+                                <div class="om-bar-fill" style="width: @item.PourcentageBar%;"></div>
+                            </div>
+                        </div>
                     }
-                    else
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SECTION 5 : TABLEAU TAUX D'ANOMALIE -->
+<div class="om-card mb-4">
+    <div class="om-card-header">
+        <div class="om-card-title">Analyse du Taux d'Anomalie par Sujet</div>
+    </div>
+    <div class="om-card-body p-0">
+        <div class="table-responsive">
+            <table class="om-table">
+                <thead>
+                    <tr>
+                        <th>Subject Name</th>
+                        <th class="text-end">Total Réclamations</th>
+                        <th class="text-center">Jours en Anomalie</th>
+                        <th class="text-center">Total Jours</th>
+                        <th class="text-end">Taux d'Anomalie</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var row in Model.TableauTaux)
                     {
-                        <span class="text-success">✓ Normal</span>
+                        bool isKey = keySubjects.Any(k => row.SubjectName.StartsWith(k, StringComparison.OrdinalIgnoreCase));
+                        <tr>
+                            <td style="font-weight: 600;">
+                                @row.SubjectName
+                                @if (isKey)
+                                {
+                                    <span class="om-key-tag">Prioritaire</span>
+                                }
+                            </td>
+                            <td class="text-end" style="font-weight: 600;">@row.TotalReclamations.ToString("N0")</td>
+                            <td class="text-center" style="font-weight: 700; color: @(row.NbJoursAnomalie > 0 ? "var(--alert-red)" : "var(--gray-text)");">
+                                @row.NbJoursAnomalie
+                            </td>
+                            <td class="text-center">@row.TotalJours</td>
+                            <td class="text-end">
+                                @if (row.TauxAnomalie >= 25.0)
+                                {
+                                    <span class="om-rate-high">@row.TauxAnomalie.ToString("F1")%</span>
+                                }
+                                else if (row.TauxAnomalie >= 10.0)
+                                {
+                                    <span class="om-rate-med">@row.TauxAnomalie.ToString("F1")%</span>
+                                }
+                                else
+                                {
+                                    <span class="om-rate-low">@row.TauxAnomalie.ToString("F1")%</span>
+                                }
+                            </td>
+                        </tr>
                     }
-                </td>
-            </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- CHART.JS INCLUSION & SCRIPT TIMELINE -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<script>
+    (function () {
+        var rawData = @Html.Raw(Model.EvolutionTimelineJson);
+
+        if (!rawData || !rawData.dates || rawData.dates.length === 0) return;
+
+        var canvas = document.getElementById('timelineChart');
+        var ctx = canvas.getContext('2d');
+
+        var gradientRecArea = ctx.createLinearGradient(0, 0, 0, 300);
+        gradientRecArea.addColorStop(0, 'rgba(255, 121, 0, 0.45)');
+        gradientRecArea.addColorStop(1, 'rgba(255, 121, 0, 0.02)');
+
+        var gradientRecLine = ctx.createLinearGradient(0, 0, 0, 300);
+        gradientRecLine.addColorStop(0, 'rgba(255, 121, 0, 0.18)');
+        gradientRecLine.addColorStop(1, 'rgba(255, 121, 0, 0.0)');
+
+        var chartInstance = null;
+        var currentMode = 'line';
+
+        function createChart(mode) {
+            currentMode = mode;
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            var type = (mode === 'bar') ? 'bar' : 'line';
+            var fillRec = (mode === 'area' || mode === 'line');
+            var bgRec = (mode === 'area') ? gradientRecArea : (mode === 'line' ? gradientRecLine : '#FF7900');
+            var bgAno = (mode === 'bar') ? '#EF4444' : 'transparent';
+
+            chartInstance = new Chart(ctx, {
+                type: type,
+                data: {
+                    labels: rawData.dates,
+                    datasets: [
+                        {
+                            label: 'Réclamations',
+                            data: rawData.reclamations,
+                            borderColor: '#FF7900',
+                            backgroundColor: bgRec,
+                            fill: fillRec,
+                            tension: 0.35,
+                            borderWidth: mode === 'bar' ? 0 : 3,
+                            borderRadius: mode === 'bar' ? 4 : 0,
+                            pointRadius: mode === 'bar' ? 0 : 3,
+                            pointHoverRadius: 6,
+                            pointBackgroundColor: '#FF7900',
+                            yAxisID: 'yRec'
+                        },
+                        {
+                            label: 'Anomalies',
+                            data: rawData.anomalies,
+                            borderColor: '#EF4444',
+                            backgroundColor: bgAno,
+                            fill: false,
+                            tension: 0.2,
+                            borderWidth: mode === 'bar' ? 0 : 2,
+                            borderDash: mode === 'bar' ? [] : [5, 5],
+                            borderRadius: mode === 'bar' ? 4 : 0,
+                            pointRadius: mode === 'bar' ? 0 : 4,
+                            pointBackgroundColor: '#EF4444',
+                            pointHoverRadius: 7,
+                            yAxisID: 'yAno'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        mode: 'index',
+                        intersect: false
+                    },
+                    plugins: {
+                        legend: {
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                usePointStyle: true,
+                                boxWidth: 8,
+                                boxHeight: 8,
+                                color: getThemeVar('--text-primary', '#F8FAFC'),
+                                font: { family: "'Segoe UI', sans-serif", size: 12, weight: '700' },
+                                padding: 16
+                            }
+                        },
+                        tooltip: {
+                            backgroundColor: getThemeVar('--chart-tooltip-bg', '#090D16'),
+                            borderColor: getThemeVar('--border-color', '#334155'),
+                            borderWidth: 1,
+                            titleFont: { family: "'Segoe UI', sans-serif", size: 13, weight: 'bold' },
+                            bodyFont: { family: "'Segoe UI', sans-serif", size: 12 },
+                            titleColor: getThemeVar('--text-primary', '#F8FAFC'),
+                            bodyColor: getThemeVar('--text-secondary', '#CBD5E1'),
+                            padding: 12,
+                            cornerRadius: 8
+                        }
+                    },
+                    scales: {
+                        x: {
+                            grid: { display: false },
+                            ticks: { font: { size: 11, weight: '600' }, color: getThemeVar('--chart-text', '#94A3B8') }
+                        },
+                        yRec: {
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: { display: true, text: 'Réclamations', font: { weight: 'bold', size: 11 }, color: '#FF7900' },
+                            grid: { color: getThemeVar('--chart-grid', '#334155') },
+                            ticks: { font: { size: 11 }, color: getThemeVar('--chart-text', '#94A3B8') }
+                        },
+                        yAno: {
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: { display: true, text: 'Anomalies', font: { weight: 'bold', size: 11 }, color: '#EF4444' },
+                            grid: { display: false },
+                            ticks: { stepSize: 1, precision: 0, font: { size: 11 }, color: '#EF4444' }
+                        }
+                    }
+                }
+            });
         }
-    </tbody>
-</table>
+
+        function getThemeVar(varName, fallback) {
+            var val = getComputedStyle(document.documentElement).getPropertyValue(varName).trim();
+            return val || fallback;
+        }
+
+        window.switchChartMode = function(mode) {
+            document.querySelectorAll('.om-segmented-btn').forEach(function(btn) { btn.classList.remove('active'); });
+            if (mode === 'line') document.getElementById('btnModeLine').classList.add('active');
+            if (mode === 'area') document.getElementById('btnModeArea').classList.add('active');
+            if (mode === 'bar') document.getElementById('btnModeBar').classList.add('active');
+
+            createChart(mode);
+        };
+
+        window.addEventListener('omThemeChanged', function () {
+            createChart(currentMode);
+        });
+
+        // Initialisation en mode ligne
+        createChart('line');
+    })();
+</script>

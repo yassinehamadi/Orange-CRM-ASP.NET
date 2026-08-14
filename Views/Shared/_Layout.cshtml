@@ -1,41 +1,84 @@
-﻿<!DOCTYPE html>
-<html>
+<!DOCTYPE html>
+<html lang="fr" data-theme="dark">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title - Mon application ASP.NET</title>
+    <title>@ViewBag.Title - Orange Monitoring CRM</title>
     @Styles.Render("~/Content/css")
+    <link rel="stylesheet" href="~/Content/orange-theme.css" />
     @Scripts.Render("~/bundles/modernizr")
+
+    <script>
+        // Restauration immédiate du thème sauvegardé sans clignotement
+        (function () {
+            var savedTheme = localStorage.getItem('om_theme') || 'dark';
+            document.documentElement.setAttribute('data-theme', savedTheme);
+        })();
+    </script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark">
-        <div class="container">
-            @Html.ActionLink("IHM Monitoring", "Index", "Home", new { area = "" }, new { @class = "navbar-brand" })
-            <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" title="Activer/désactiver la navigation" aria-controls="navbarSupportedContent"
-                    aria-expanded="false" aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse d-sm-inline-flex justify-content-between">
-                <ul class="navbar-nav flex-grow-1">
-                    <li>@Html.ActionLink("Accueil", "Index", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("À propos de", "About", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Contact", "Contact", "Home", new { area = "" }, new { @class = "nav-link" })</li>
-                    <li>@Html.ActionLink("Monitoring", "Index", "Monitoring", new { area = "" }, new { @class = "nav-link" })</li>
-                </ul>
+    <header>
+        <nav class="navbar navbar-expand-md navbar-orange fixed-top">
+            <div class="container">
+                <a class="navbar-brand" href="@Url.Action("Index", "Monitoring")">
+                    <span class="brand-badge">Orange</span>
+                    <span class="brand-sub">Monitoring CRM</span>
+                </a>
+                <button type="button" class="navbar-toggler" data-bs-toggle="collapse" data-bs-target="#navbarContent" aria-controls="navbarContent"
+                        aria-expanded="false" aria-label="Afficher le menu">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse justify-content-end align-items-center" id="navbarContent">
+                    @{
+                        string currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+                    }
+                    <ul class="navbar-nav me-2">
+                        <li class="nav-item">
+                            <a class="nav-link @(currentAction == "Index" ? "active" : "")" href="@Url.Action("Index", "Monitoring")">Tableau de bord</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentAction == "Quotidien" ? "active" : "")" href="@Url.Action("Quotidien", "Monitoring")">Suivi quotidien</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link @(currentAction == "Sujets" || currentAction == "Detail" ? "active" : "")" href="@Url.Action("Sujets", "Monitoring")">Analyse des sujets</a>
+                        </li>
+                    </ul>
+
+                    <!-- Single Horizontal Interrupteur Toggle (Sombre / Clair) -->
+                    <button type="button" class="om-theme-switch" id="omThemeSwitch" onclick="toggleAppTheme()" aria-label="Basculer le thème" title="Basculer le thème (Sombre / Clair)">
+                        <span class="om-theme-switch-icon">🌙</span>
+                        <span class="om-theme-switch-knob"></span>
+                        <span class="om-theme-switch-icon">☀️</span>
+                    </button>
+                </div>
             </div>
-        </div>
-    </nav>
-    <div class="container body-content">
+        </nav>
+    </header>
+
+    <main class="container body-content py-3">
         @RenderBody()
-        <hr />
-        <footer>
-            <p>&copy; @DateTime.Now.Year - Mon application ASP.NET</p>
-        </footer>
-    </div>
+    </main>
+
+    <footer class="footer-orange">
+        <div class="container text-center">
+            <p><strong>Analytics & Monitoring CRM</strong> &mdash; Orange Tunisie &copy; @DateTime.Now.Year &mdash; Tous droits réservés.</p>
+        </div>
+    </footer>
 
     @Scripts.Render("~/bundles/jquery")
     @Scripts.Render("~/bundles/bootstrap")
+
+    <script>
+        // Fonction globale de basculement de thème avec bouton unique
+        window.toggleAppTheme = function () {
+            var currentTheme = document.documentElement.getAttribute('data-theme') || 'dark';
+            var newTheme = (currentTheme === 'dark') ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('om_theme', newTheme);
+            window.dispatchEvent(new CustomEvent('omThemeChanged', { detail: { theme: newTheme } }));
+        };
+    </script>
+
     @RenderSection("scripts", required: false)
 </body>
 </html>

@@ -1,0 +1,80 @@
+@model IHM_Monitoring.Models.QuotidienViewModel
+
+@{
+    ViewBag.Title = "Suivi Quotidien Détaillé";
+}
+
+<!-- En-tête de la page -->
+<div class="om-page-header">
+    <div class="om-page-title-group">
+        <div class="om-page-tag">Analyse Journalière</div>
+        <h1 class="om-page-title">Suivi Quotidien Détaillé</h1>
+        <p class="om-page-subtitle">Analyse fine de la volumétrie et des anomalies pour la journée du <strong>@Model.DateAffichee.ToString("dd/MM/yyyy")</strong></p>
+    </div>
+</div>
+
+<!-- Barre d'outils et sélecteur de date -->
+<div class="om-toolbar">
+    <form method="get" action="@Url.Action("Quotidien")" class="om-toolbar-group">
+        <label for="date" class="om-date-label">Date d'observation :</label>
+        <input type="date" id="date" name="date" value="@Model.DateAffichee.ToString("yyyy-MM-dd")"
+               min="@Model.DateMin.ToString("yyyy-MM-dd")" max="@Model.DateMax.ToString("yyyy-MM-dd")"
+               class="om-date-input" />
+        <button type="submit" class="btn-orange">Afficher</button>
+    </form>
+
+    <div class="om-toolbar-group">
+        <a href="@Url.Action("Quotidien", new { date = Model.DateAffichee.AddDays(-1).ToString("yyyy-MM-dd") })"
+           class="btn-om-outline">&larr; Jour précédent</a>
+        <a href="@Url.Action("Quotidien", new { date = Model.DateAffichee.AddDays(1).ToString("yyyy-MM-dd") })"
+           class="btn-om-outline">Jour suivant &rarr;</a>
+    </div>
+</div>
+
+<!-- Tableau Quotidien Détaillé -->
+<div class="om-table-container mb-5">
+    <table class="om-table">
+        <thead>
+            <tr>
+                <th>Subject Name</th>
+                <th class="text-end">Réclamations (ce jour)</th>
+                <th class="text-end">Moyenne habituelle</th>
+                <th class="text-center">Z-Score</th>
+                <th class="text-center">Statut & Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @if (Model.Resultats.Count == 0)
+            {
+                <tr>
+                    <td colspan="5" class="text-center text-muted py-4">Aucune donnée disponible pour cette date.</td>
+                </tr>
+            }
+            else
+            {
+                foreach (var ligne in Model.Resultats)
+                {
+                    <tr class="@(ligne.EstAnomalie ? "om-row-anomaly" : "")">
+                        <td style="font-weight: 700;">@ligne.SubjectName</td>
+                        <td class="text-end" style="font-weight: 800; font-size: 1.05rem;">@ligne.NombreReclamations.ToString("N0")</td>
+                        <td class="text-end" style="color: var(--gray-text);">@(ligne.MoyenneMobile.HasValue ? ligne.MoyenneMobile.Value.ToString("F0") : "-")</td>
+                        <td class="text-center" style="color: var(--gray-text); font-weight: 600;">@(ligne.ZScore.HasValue ? ligne.ZScore.Value.ToString("F2") : "-")</td>
+                        <td class="text-center">
+                            @if (ligne.EstAnomalie)
+                            {
+                                <a href="@Url.Action("Sujets", new { subjectName = ligne.SubjectName, date = ligne.Date.ToString("yyyy-MM-dd") })"
+                                   class="om-badge-danger">
+                                    &#9888; Anomalie &mdash; Voir détail
+                                </a>
+                            }
+                            else
+                            {
+                                <span class="om-badge-success">&check; Normal</span>
+                            }
+                        </td>
+                    </tr>
+                }
+            }
+        </tbody>
+    </table>
+</div>
