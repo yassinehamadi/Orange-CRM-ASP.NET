@@ -242,8 +242,13 @@
 
 <!-- SECTION 5 : TABLEAU TAUX D'ANOMALIE -->
 <div class="om-card mb-4">
-    <div class="om-card-header">
+    <div class="om-card-header flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-2 py-3">
         <div class="om-card-title">Analyse du Taux d'Anomalie par Sujet</div>
+        <div class="om-segmented-control" role="group" aria-label="Filtre par préfixe">
+            <button type="button" class="om-segmented-btn om-filter-btn" onclick="toggleSubjectPrefixFilter(this, 'tauxTableBody', 'REC')">REC</button>
+            <button type="button" class="om-segmented-btn om-filter-btn" onclick="toggleSubjectPrefixFilter(this, 'tauxTableBody', 'INF')">INF</button>
+            <button type="button" class="om-segmented-btn om-filter-btn" onclick="toggleSubjectPrefixFilter(this, 'tauxTableBody', 'RET')">RET</button>
+        </div>
     </div>
     <div class="om-card-body p-0">
         <div class="table-responsive">
@@ -257,7 +262,7 @@
                         <th class="text-end">Taux d'Anomalie</th>
                     </tr>
                 </thead>
-                <tbody>
+                <tbody id="tauxTableBody">
                     @foreach (var row in Model.TableauTaux)
                     {
                         bool isKey = keySubjects.Any(k => row.SubjectName.StartsWith(k, StringComparison.OrdinalIgnoreCase));
@@ -430,7 +435,7 @@
         }
 
         window.switchChartMode = function(mode) {
-            document.querySelectorAll('.om-segmented-btn').forEach(function(btn) { btn.classList.remove('active'); });
+            document.querySelectorAll('#btnModeLine, #btnModeArea, #btnModeBar').forEach(function(btn) { btn.classList.remove('active'); });
             if (mode === 'line') document.getElementById('btnModeLine').classList.add('active');
             if (mode === 'area') document.getElementById('btnModeArea').classList.add('active');
             if (mode === 'bar') document.getElementById('btnModeBar').classList.add('active');
@@ -445,4 +450,35 @@
         // Initialisation en mode ligne
         createChart('line');
     })();
+
+    // Fonction de filtrage par préfixe de sujet (REC, INF, RET)
+    function toggleSubjectPrefixFilter(btn, tbodyId, prefix) {
+        var group = btn.parentElement;
+        var wasActive = btn.classList.contains('active');
+        
+        var filterBtns = group.querySelectorAll('.om-filter-btn');
+        filterBtns.forEach(function(b) { b.classList.remove('active'); });
+        
+        var tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        var rows = tbody.querySelectorAll('tr');
+        
+        if (wasActive) {
+            rows.forEach(function(r) { r.style.display = ''; });
+        } else {
+            btn.classList.add('active');
+            var pref = prefix.toUpperCase();
+            rows.forEach(function(r) {
+                var td = r.querySelector('td');
+                if (td) {
+                    var text = (td.textContent || td.innerText || '').trim().toUpperCase();
+                    if (text.startsWith(pref)) {
+                        r.style.display = '';
+                    } else {
+                        r.style.display = 'none';
+                    }
+                }
+            });
+        }
+    }
 </script>

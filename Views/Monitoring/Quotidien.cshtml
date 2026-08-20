@@ -31,6 +31,18 @@
     </div>
 </div>
 
+<!-- En-tête de la section avec filtre par préfixe -->
+<div class="d-flex flex-column flex-sm-row justify-content-between align-items-start align-items-sm-center gap-2 mb-3">
+    <div style="font-weight: 700; font-size: 1rem; color: var(--text-primary);">
+        Analyse par sujet d'anomalie
+    </div>
+    <div class="om-segmented-control" role="group" aria-label="Filtre par préfixe">
+        <button type="button" class="om-segmented-btn om-filter-btn" onclick="toggleSubjectPrefixFilter(this, 'quotidienTableBody', 'REC')">REC</button>
+        <button type="button" class="om-segmented-btn om-filter-btn" onclick="toggleSubjectPrefixFilter(this, 'quotidienTableBody', 'INF')">INF</button>
+        <button type="button" class="om-segmented-btn om-filter-btn" onclick="toggleSubjectPrefixFilter(this, 'quotidienTableBody', 'RET')">RET</button>
+    </div>
+</div>
+
 <!-- Tableau Quotidien Détaillé -->
 <div class="om-table-container mb-5">
     <table class="om-table">
@@ -43,7 +55,7 @@
                 <th class="text-center">Statut & Action</th>
             </tr>
         </thead>
-        <tbody>
+        <tbody id="quotidienTableBody">
             @if (Model.Resultats.Count == 0)
             {
                 <tr>
@@ -78,3 +90,36 @@
         </tbody>
     </table>
 </div>
+
+<script>
+    // Fonction de filtrage par préfixe de sujet (REC, INF, RET)
+    function toggleSubjectPrefixFilter(btn, tbodyId, prefix) {
+        var group = btn.parentElement;
+        var wasActive = btn.classList.contains('active');
+        
+        var filterBtns = group.querySelectorAll('.om-filter-btn');
+        filterBtns.forEach(function(b) { b.classList.remove('active'); });
+        
+        var tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        var rows = tbody.querySelectorAll('tr');
+        
+        if (wasActive) {
+            rows.forEach(function(r) { r.style.display = ''; });
+        } else {
+            btn.classList.add('active');
+            var pref = prefix.toUpperCase();
+            rows.forEach(function(r) {
+                var td = r.querySelector('td');
+                if (td) {
+                    var text = (td.textContent || td.innerText || '').trim().toUpperCase();
+                    if (text.startsWith(pref)) {
+                        r.style.display = '';
+                    } else {
+                        r.style.display = 'none';
+                    }
+                }
+            });
+        }
+    }
+</script>
